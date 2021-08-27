@@ -5,11 +5,38 @@ import {
   View,
   TouchableOpacity,
   FlatList,
+  Button,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import firebase from "../database/firebaseDB";
 
 export default function NotesScreen({ navigation, route }) {
   const [notes, setNotes] = useState([]);
+
+  //add new sample collection
+  // firebase.firestore().collection("testing").add({
+  //   title: "Testing: Does this work??",
+  //   banana: "bananananana",
+  // });
+
+  // load firebase data on start
+  // snapshot takes in a callback function which returns a collection of snapshots
+  // get the data and map it to an array of notes
+  // when creating a snapshot, return an unsubscribe function
+  useEffect(() => {
+    const unsubscribe = firebase
+      .firestore()
+      .collection("todos")
+      .onSnapshot((collection) => {
+        const updatedNotes = collection.docs.map((doc) => doc.data());
+        setNotes(updatedNotes);
+      });
+
+    // unsubscribe when unmounting
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   // This is to set up the top right button
   useEffect(() => {
@@ -38,7 +65,10 @@ export default function NotesScreen({ navigation, route }) {
         done: false,
         id: notes.length.toString(),
       };
-      setNotes([...notes, newNote]);
+
+      //add new note into firestore
+      firebase.firestore().collection("todos").add(newNote);
+      // setNotes([...notes, newNote]);
     }
   }, [route.params?.text]);
 
