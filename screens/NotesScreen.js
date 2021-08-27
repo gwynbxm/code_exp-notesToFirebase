@@ -28,7 +28,12 @@ export default function NotesScreen({ navigation, route }) {
       .firestore()
       .collection("todos")
       .onSnapshot((collection) => {
-        const updatedNotes = collection.docs.map((doc) => doc.data());
+        const updatedNotes = collection.docs.map((doc) => {
+          return {
+            id: doc.id,
+            ...doc.data(),
+          };
+        });
         setNotes(updatedNotes);
       });
 
@@ -63,7 +68,7 @@ export default function NotesScreen({ navigation, route }) {
       const newNote = {
         title: route.params.text,
         done: false,
-        id: notes.length.toString(),
+        // id: notes.length.toString(), // no longer using this. instead, use firebase document id
       };
 
       //add new note into firestore
@@ -80,7 +85,8 @@ export default function NotesScreen({ navigation, route }) {
   function deleteNote(id) {
     console.log("Deleting " + id);
     // To delete that item, we filter out the item we don't want
-    setNotes(notes.filter((item) => item.id !== id));
+    // setNotes(notes.filter((item) => item.id !== id));
+    firebase.firestore().collection("todos").doc(id).delete();
   }
 
   // The function to render each row in our FlatList
